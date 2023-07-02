@@ -26,10 +26,10 @@ namespace InstantPlatformFallthrough
 
                     var label = il.DefineLabel();
 
-                    c.Emit(Ldloc_S, (byte)13); // fallThrough
+                    c.Emit(Ldloc_S, (byte)14); // fallThrough
                     c.Emit(Brfalse_S, label);
                     c.Emit(Ldc_I4_1);
-                    c.Emit(Stloc_S, (byte)12); // ignorePlats
+                    c.Emit(Stloc_S, (byte)13); // ignorePlats
 
                     c.MarkLabel(label);
                 }
