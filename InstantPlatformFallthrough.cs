@@ -3,9 +3,6 @@ using Terraria;
 using MonoMod.Cil;
 using System;
 using Terraria.ModLoader;
-using Mono.Cecil.Cil;
-using System.Text;
-using System.IO;
 
 namespace InstantPlatformFallthrough
 {
@@ -13,7 +10,7 @@ namespace InstantPlatformFallthrough
 	{
         public override void Load()
         {
-            IL.Terraria.Player.Update += il =>
+            Terraria.IL_Player.Update += il =>
             {
                 try
                 {
