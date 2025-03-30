@@ -29,10 +29,10 @@ namespace InstantPlatformFallthrough
                     i => i.Match(Stloc_S),
 
                     i => i.MatchLdarg0(),
-                    i => i.MatchLdcI4(0),
+                    i => i.Match(Ldc_I4_0),
                     i => i.MatchStfld<Player>(nameof(Player.slideDir)),
 
-                    i => i.MatchLdcI4(0),
+                    i => i.Match(Ldc_I4_0),
                     i => i.MatchStloc(out ignorePlatsIndex),
 
                     i => i.MatchLdarg0(),
@@ -40,13 +40,14 @@ namespace InstantPlatformFallthrough
                     i => i.MatchStloc(out fallThroughIndex)
                 );
 
-                var label = il.DefineLabel();
+                c.Index -= 5;
+                c.RemoveRange(5);
 
-                c.EmitLdloc(fallThroughIndex); // Push the value of fallThrough onto the stack
-                c.EmitBrfalse(label);          // Jump to the label emitted below if the stack value is false
-                c.EmitLdcI4(1);                // Push 1 onto the stack
-                c.EmitStloc(ignorePlatsIndex); // Set ignorePlats to stack value
-                c.MarkLabel(label);            // Emulate an if statement with a label
+                c.EmitLdarg0();                                                   // Push the first argument (this)
+                c.EmitLdfld(typeof(Player).GetField(nameof(Player.controlDown))); // Pop, then push the value of controlDown
+                c.EmitDup();                                                      // Duplicate stack value
+                c.EmitStloc(ignorePlatsIndex);                                    // Store stack value in ignorePlats
+                c.EmitStloc(fallThroughIndex);                                    // Store stack value in fallThrough
             };
 
             base.Load();
