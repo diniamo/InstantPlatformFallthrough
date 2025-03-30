@@ -13,31 +13,40 @@ namespace InstantPlatformFallthrough
         {
             IL_Player.Update += il =>
             {
-                try
-                {
-                    var c = new ILCursor(il);
-                    c.GotoNext(MoveType.After,
-                        i => i.MatchStfld<Player>(nameof(Player.slideDir)),
-                        i => i.Match(Ldc_I4_0),
-                        i => i.Match(Stloc_S),
-                        i => i.Match(Ldarg_0),
-                        i => i.MatchLdfld<Player>(nameof(Player.controlDown)),
-                        i => i.Match(Stloc_S)
-                    );
+                var c = new ILCursor(il);
 
-                    var label = il.DefineLabel();
+                // These will be always be set by the time they are used,
+                // but C# doesn't know that the predicates will always be called
+                // (unless an error occurs, but code execution will stop here too in that case)
+                int ignorePlatsIndex = default;
+                int fallThroughIndex = default;
 
-                    c.Emit(Ldloc_S, (byte)14); // fallThrough
-                    c.Emit(Brfalse_S, label);
-                    c.Emit(Ldc_I4_1);
-                    c.Emit(Stloc_S, (byte)13); // ignorePlats
+                c.GotoNext(MoveType.After,
+                    // We don't actually care about the first 2 parts, but match them anyway,
+                    // because the sequence we actaully need may very well appear before.
+                    i => i.MatchLdarg0(),
+                    i => i.MatchLdfld<Entity>(nameof(Entity.velocity)),
+                    i => i.Match(Stloc_S),
 
-                    c.MarkLabel(label);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                    i => i.MatchLdarg0(),
+                    i => i.MatchLdcI4(0),
+                    i => i.MatchStfld<Player>(nameof(Player.slideDir)),
+
+                    i => i.MatchLdcI4(0),
+                    i => i.MatchStloc(out ignorePlatsIndex),
+
+                    i => i.MatchLdarg0(),
+                    i => i.MatchLdfld<Player>(nameof(Player.controlDown)),
+                    i => i.MatchStloc(out fallThroughIndex)
+                );
+
+                var label = il.DefineLabel();
+
+                c.EmitLdloc(fallThroughIndex); // Push the value of fallThrough onto the stack
+                c.EmitBrfalse(label);          // Jump to the label emitted below if the stack value is false
+                c.EmitLdcI4(1);                // Push 1 onto the stack
+                c.EmitStloc(ignorePlatsIndex); // Set ignorePlats to stack value
+                c.MarkLabel(label);            // Emulate an if statement with a label
             };
 
             base.Load();
