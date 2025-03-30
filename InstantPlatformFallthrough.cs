@@ -1,16 +1,17 @@
-using static Mono.Cecil.Cil.OpCodes;
-using Terraria;
-using MonoMod.Cil;
 using System;
+using MonoMod.Cil;
+using Terraria;
 using Terraria.ModLoader;
+
+using static Mono.Cecil.Cil.OpCodes;
 
 namespace InstantPlatformFallthrough
 {
-	public class InstantPlatformFallthrough : Mod
-	{
+    public class InstantPlatformFallthrough : Mod
+    {
         public override void Load()
         {
-            Terraria.IL_Player.Update += il =>
+            IL_Player.Update += il =>
             {
                 try
                 {
